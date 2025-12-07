@@ -425,7 +425,7 @@ else if (appState === "r1_result") {
     mouseX > resultHomeBtnX && mouseX < resultHomeBtnX + resultHomeBtnW &&
     mouseY > resultHomeBtnY && mouseY < resultHomeBtnY + resultHomeBtnH
   ) {
-    window.location.href = "../index.html";
+    window.location.href = "/nine_lights_final/index.html";
     return;
   }
 
@@ -434,7 +434,7 @@ else if (appState === "r1_result") {
     mouseX > resultNextBtnX && mouseX < resultNextBtnX + resultNextBtnW &&
     mouseY > resultNextBtnY && mouseY < resultNextBtnY + resultNextBtnH
   ) {
-    window.location.href = "../ritual_02/index.html";
+    window.location.href = "/nine_lights_final/ritual_02/index.html";
     return;
   }
 }
