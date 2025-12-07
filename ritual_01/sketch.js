@@ -440,3 +440,4 @@ function detectPinkyGesture(handsArr) {
 
   return false;
 }
+}
