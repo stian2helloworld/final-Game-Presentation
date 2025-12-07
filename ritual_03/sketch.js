@@ -9,7 +9,7 @@ let readBuffer = "";
 let waterLevel = 0;
 let waterTriggered = false;
 let waterDetectedTime = 0;
-const waterThreshold = 1000;   // 你要求：必须到 1023 才算过关
+const waterThreshold = 1000;  
 
 // ---------- App States ----------
 let appState = "r3_title";
