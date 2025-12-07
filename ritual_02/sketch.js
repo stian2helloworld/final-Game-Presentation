@@ -56,18 +56,18 @@ let transitionStartTime = 0;
 function preload() {
 
   // Title
-  r2TitleBg = loadImage("ritual02_images/ritual02_bgpage.jpg");
+  r2TitleBg = loadImage("/nine_lights_final/ritual_02/ritual02_images/ritual02_bgpage.jpg");
 
   // Instruction
-  r2InstrBg = loadImage("ritual02_images/ritual02_intro.jpg");
+  r2InstrBg = loadImage("/nine_lights_final/ritual_02/ritual02_images/ritual02_intro.jpg");
 
   // Action
-  r2ActionBg = loadImage("ritual02_images/ritual02_action.jpg");
-  r2RingBellImg = loadImage("ritual02_images/ring_bell.png");
-  r2SoundDetectedImg = loadImage("ritual02_images/bell_detected.png");
+  r2ActionBg = loadImage("/nine_lights_final/ritual_02/ritual02_images/ritual02_action.jpg");
+  r2RingBellImg = loadImage("/nine_lights_final/ritual_02/ritual02_images/ring_bell.png");
+  r2SoundDetectedImg = loadImage("/nine_lights_final/ritual_02/ritual02_images/bell_detected.png");
 
   // Result
-  r2ResultBg = loadImage("ritual02_images/ritual02_result.jpg");
+  r2ResultBg = loadImage("/nine_lights_final/ritual_02/ritual02_images/ritual02_result.jpg");
 }
 
 
@@ -85,32 +85,32 @@ function setup() {
   fft.setInput(mic);
 
   // ----- VIDEO ELEMENTS -----
-  r2TitleVid = createVideo("ritual02_images/bell_motion.webm");
+  r2TitleVid = createVideo("/nine_lights_final/ritual_02/ritual02_images/bell_motion.webm");
   r2TitleVid.hide();
   r2TitleVid.loop();
 
-  r2InstrVid = createVideo("ritual02_images/bell_instruction.webm");
+  r2InstrVid = createVideo("/nine_lights_final/ritual_02/ritual02_images/bell_instruction.webm");
   r2InstrVid.hide();
   r2InstrVid.loop();
 
-  r2ActionVid = createVideo("ritual02_images/ritual_sound_activation.webm");
+  r2ActionVid = createVideo("/nine_lights_final/ritual_02/ritual02_images/ritual_sound_activation.webm");
   r2ActionVid.hide();
   r2ActionVid.loop();
 
-  r2TransBgVid = createVideo("ritual02_images/cloud.webm");
+  r2TransBgVid = createVideo("/nine_lights_final/ritual_02/ritual02_images/cloud.webm");
   r2TransBgVid.hide();
   r2TransBgVid.loop();
 
-  r2TransFrameVid = createVideo("ritual02_images/transitional_page02.webm");
+  r2TransFrameVid = createVideo("/nine_lights_final/ritual_02/ritual02_images/transitional_page02.webm");
   r2TransFrameVid.hide();
   r2TransFrameVid.loop();
 
-  r2PatternVid = createVideo("ritual02_images/pattern_ritual02.webm");
+  r2PatternVid = createVideo("/nine_lights_final/ritual_02/ritual02_images/pattern_ritual02.webm");
   r2PatternVid.hide();
   r2PatternVid.loop();
   r2PatternVid.speed(0.5); // 慢一点更梦幻
 
-  r2DeerVid = createVideo("ritual02_images/deer_motion02.webm");
+  r2DeerVid = createVideo("/nine_lights_final/ritual_02/ritual02_images/deer_motion02.webm");
   r2DeerVid.hide();
   r2DeerVid.loop();
 
@@ -320,7 +320,7 @@ if (
   mouseX > resultHomeBtnX && mouseX < resultHomeBtnX + resultHomeBtnW &&
   mouseY > resultHomeBtnY && mouseY < resultHomeBtnY + resultHomeBtnH
 ) {
-  window.location.href = "../index.html";
+  window.location.href = "/nine_lights_final/index.html";
   return;
 }
 
@@ -329,7 +329,7 @@ if (
   mouseX > resultNextBtnX && mouseX < resultNextBtnX + resultNextBtnW &&
   mouseY > resultNextBtnY && mouseY < resultNextBtnY + resultNextBtnH
 ) {
-  window.location.href = "../ritual_03/index.html";
+  window.location.href = "/nine_lights_final/ritual_03/index.html";
   return;
 }
 }
