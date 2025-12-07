@@ -199,6 +199,31 @@ function filterHands(handsArr) {
   return [scored[0].hand, scored[1].hand];
 }
 
+// Pinky gesture detection (your original logic kept intact)
+function detectPinkyGesture(handsArr) {
+  const pair = getDominantHandPair(handsArr);
+  if (!pair) return false;
+
+  const pinkyTipClose = (hand) => {
+    const k = hand.keypoints;
+    if (k.length < 21) return false;
+
+    const d1 = dist(k[18].x, k[18].y, k[19].x, k[19].y);
+    const d2 = dist(k[19].x, k[19].y, k[20].x, k[20].y);
+    const d3 = dist(k[18].x, k[18].y, k[20].x, k[20].y);
+    return d1 < 35 && d2 < 35 && d3 < 35;
+  };
+
+  if (pinkyTipClose(pair[0]) && pinkyTipClose(pair[1])) {
+    const w1 = pair[0].keypoints[0];
+    const w2 = pair[1].keypoints[0];
+    const wristDist = dist(w1.x, w1.y, w2.x, w2.y);
+    return wristDist < 100;
+  }
+
+  return false;
+}
+
 // ====== Page: Action (Camera + HandPose) ======
 function drawR1Action() {
   background(0);
@@ -414,30 +439,5 @@ function getDominantHandPair(handsArr) {
   scoredHands.sort((a, b) => a.distToCenter - b.distToCenter);
   if (scoredHands.length >= 2) return [scoredHands[0].hand, scoredHands[1].hand];
   return null;
-}
-
-// Pinky gesture detection (your original logic kept intact)
-function detectPinkyGesture(handsArr) {
-  const pair = getDominantHandPair(handsArr);
-  if (!pair) return false;
-
-  const pinkyTipClose = (hand) => {
-    const k = hand.keypoints;
-    if (k.length < 21) return false;
-
-    const d1 = dist(k[18].x, k[18].y, k[19].x, k[19].y);
-    const d2 = dist(k[19].x, k[19].y, k[20].x, k[20].y);
-    const d3 = dist(k[18].x, k[18].y, k[20].x, k[20].y);
-    return d1 < 35 && d2 < 35 && d3 < 35;
-  };
-
-  if (pinkyTipClose(pair[0]) && pinkyTipClose(pair[1])) {
-    const w1 = pair[0].keypoints[0];
-    const w2 = pair[1].keypoints[0];
-    const wristDist = dist(w1.x, w1.y, w2.x, w2.y);
-    return wristDist < 100;
-  }
-
-  return false;
 }
 }
