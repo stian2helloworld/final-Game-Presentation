@@ -44,15 +44,15 @@ let resultStartTime = 0;
 // =====================================================
 function preload() {
   // 静态背景
-  r3TitleBg  = loadImage("/nine_lights_final/ritual_03/ritual03_images/ritual_03_titlepage.jpg");
-  r3InstrBg  = loadImage("/nine_lights_final/ritual_03/ritual03_images/ritual_03_instructionpage.jpg");
-  r3ActionBg = loadImage("/nine_lights_final/ritual_03/ritual03_images/ritual_03_actionpage.jpg");
-  r3ResultBg = loadImage("/nine_lights_final/ritual_03/ritual03_images/ritual_03_result.jpg"); // 可选
+  r3TitleBg  = loadImage("/nine_lights_final/ritual_03/ritual_03_images/ritual03_titlepage.jpg");
+  r3InstrBg  = loadImage("/nine_lights_final/ritual_03/ritual_03_images/ritual03_instructionpage.jpg");
+  r3ActionBg = loadImage("/nine_lights_final/ritual_03/ritual_03_images/ritual03_actionpage.jpg");
+  r3ResultBg = loadImage("/nine_lights_final/ritual_03/ritual_03_images/ritual03_result.jpg"); // 可选
   finalResultBg = loadImage("/nine_lights_final/ritual_03/ritual_03_images/result_final.jpg");
 
   // Action 图标
-  pourWaterImg     = loadImage("/nine_lights_final/ritual_03/ritual_03_images/pour_water.png");
-  waterDetectedImg = loadImage("/nine_lights_final/ritual_03/ritual_03_images/water_detected.png");
+  pourWaterImg     = loadImage("/nine_lights_final/ritual_03/ritual03_images/pour_water.png");
+  waterDetectedImg = loadImage("/nine_lights_final/ritual_03/ritual03_images/water_detected.png");
 }
 
 
