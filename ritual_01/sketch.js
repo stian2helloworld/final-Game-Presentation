@@ -308,25 +308,22 @@ function drawR1Action() {
  // 2) 底部小图片（make_gestue / hand_detected）+ 闪烁
 
 let statusImg;
-let statusW;
-let statusH;
 
+// 手势成功 / 失败都统一 UI 大小
 if (gestureDetected) {
-  // 手势成功 → 更小的 hand_detected.png（和声学检测的大小一致）
-  statusImg = handDetectedImg;
-  statusW = width * 0.16;   // ⭐ 更小更精致
+  statusImg = handDetectedImg;     // detected.png
 } else {
-  // 手势未成功 → make_gesture.png 正常大小
-  statusImg = makeGestureImg;
-  statusW = width * 0.26;   // ⭐ 稍微缩一点，不要太大
+  statusImg = makeGestureImg;      // make_gesture.png
 }
 
-statusH = (statusImg.height / statusImg.width) * statusW;
+// ---- 统一大小（和 Ring Bell 一样）----
+let statusW = width * 0.30;
+let statusH = statusImg.height * (statusW / statusImg.width);
 
 let statusX = width / 2 - statusW / 2;
-let statusY = height - statusH - 20;
+let statusY = height - statusH - 40;
 
-// 闪烁
+// ---- 闪烁效果 ----
 if (frameCount % 60 < 30) {
   image(statusImg, statusX, statusY, statusW, statusH);
 }
