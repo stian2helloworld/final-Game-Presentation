@@ -222,8 +222,13 @@ if (frameCount % 60 < 30) {
 // ===== 仪式完成：累计 7 次有效敲击 =====
 if (detectCount >= 7 && !bellTriggered) {
   bellTriggered = true;
-  transitionStartTime = millis();
+  bellCompletedTime = millis();   // ⭐ 记录完成时间（停留在当前页）
+}
+
+// ===== 铃声完成后停留 3 秒再跳转 =====
+if (bellTriggered && millis() - bellCompletedTime > 3000) {
   appState = "r2_transition";
+  transitionStartTime = millis();
   return;
 }
 
