@@ -184,23 +184,32 @@ function drawR2Action() {
   image(r2ActionBg, 0, 0, width, height);
   image(r2ActionVid, 0, 0, width, height);
 
-  // ===== FFT 声音分析 =====
+ // ===== FFT 声音分析 =====
   let spectrum = fft.analyze();
-  let highFreqEnergy = fft.getEnergy(2000, 8000);
+
+  // 提高频段到 5000–9000 Hz，更贴近铃声
+  let rawEnergy = fft.getEnergy(5000, 9000);
 
   // 平滑处理
-  highFreqEnergy = lerp(prevHigh, highFreqEnergy, 0.3);
+  let highFreqEnergy = lerp(prevHigh, rawEnergy, 0.25);
+
+  // spike 计算（必须在 prevHigh 更新前！）
+  let spike = highFreqEnergy - prevHigh;
+
+  // 更新 previous 值
   prevHigh = highFreqEnergy;
 
-  // ===== 检测铃声音 =====
-  let bellNow = highFreqEnergy > 75;
+  // ===== 铃声检测条件 =====
+  let bellNow = (highFreqEnergy > 130 && spike > 20);
 
+  // ===== 稳定帧计数 =====
   if (bellNow) {
     stableFrames++;
   } else {
     stableFrames = 0;
   }
 
+  // ===== Ritual 完成条件 =====
   if (stableFrames >= 15) {
     detectCount++;
     stableFrames = 0;
