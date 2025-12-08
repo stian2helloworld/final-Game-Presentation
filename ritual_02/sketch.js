@@ -241,6 +241,7 @@ fill(100, 200, 255);
 noStroke();
 let barWidth = map(highFreqEnergy, 0, 255, 0, 180);
 rect(40, height - 50, barWidth, 10);
+}
   
 // =======================================================
 // PAGE 4 — TRANSITION
