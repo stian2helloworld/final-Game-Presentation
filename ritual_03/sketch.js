@@ -1,53 +1,85 @@
 // =====================================================
-// Ritual 03 – Final Version (Web Serial + Images + Videos)
+// Ritual 03 – Full Flow Version (Final Merged Version)
+// title → instruction → action → transition → final
+// Includes water gameplay, ESP32, and final animations
 // =====================================================
 
 // ---------- Sensor ----------
-let port;                  
-let reader;                
-let readBuffer = "";       
+let port, reader, readBuffer = "";
 let waterLevel = 0;
 let waterTriggered = false;
 let waterDetectedTime = 0;
-const waterThreshold = 1023;   
+const waterThreshold = 1023;
 
 // ---------- App States ----------
-let appState = "r3_title";
+let appState = "title";
 
-// ---------- Images ----------
-let r3TitleBg, r3InstrBg, r3ActionBg;
+// ---------- Assets ----------
+let titleBg, instrBg, actionBg, finalBg;
+let titleVid, instrVid, actionVid;
+let transBgVid, transFrameVid;
+let patternVid, deerVid;
 let pourWaterImg, waterDetectedImg;
-let finalResultBg;
 
-// ---------- Videos ----------
-let r3TransBgVid, r3TransFrameVid;
-let finalDeerVid;
-
-// ---------- Buttons ----------
-let bottomBtnX, bottomBtnY, bottomBtnW, bottomBtnH;
-let connectBtn;
+// Invisible bottom button height
+const btnHeight = 200;
 
 // Final page invisible buttons
-let finalLeftBtnX, finalLeftBtnY, finalLeftBtnW, finalLeftBtnH;
-let finalRightBtnX, finalRightBtnY, finalRightBtnW, finalRightBtnH;
+let finalLeftBtn = { x: 60, y: 1600, w: 300, h: 200 };
+let finalRightBtn = { x: 720, y: 1600, w: 300, h: 200 };
+
+// Transition timer
+let transStartTime = 0;
+
+// Final page first-time flag
+let finalStarted = false;
+
+// ESP32 Connect button
+let connectBtn;
 
 
 // =====================================================
 // Preload
 // =====================================================
 function preload() {
-  r3TitleBg  = loadImage("/nine_lights_final/ritual_03/ritual03_images/ritual03_titlepage.jpg");
+  // Title
+  titleBg = loadImage("/nine_lights_final/ritual_03_images/ritual03_titlepage.jpg");
+  titleVid = createVideo("/nine_lights_final/ritual_03_images/ritual_water_03.webm", () => {
+    titleVid.loop(); titleVid.volume(0); titleVid.hide();
+  });
 
-  // ⭐ NEW — blinking image for title
-  r3TitleBlink = loadImage("/nine_lights_final/ritual_03/ritual03_images/ritual_water_03.png");
+  // Instruction
+  instrBg = loadImage("/nine_lights_final/ritual_03_images/ritual03_instructionpage.jpg");
+  instrVid = createVideo("/nine_lights_final/ritual_03_images/water_ritual03_instruction.webm", () => {
+    instrVid.loop(); instrVid.volume(0); instrVid.hide();
+  });
 
-  r3InstrBg  = loadImage("/nine_lights_final/ritual_03/ritual03_images/ritual03_instructionpage.jpg");
-  r3ActionBg = loadImage("/nine_lights_final/ritual_03/ritual03_images/ritual03_actionpage.jpg");
+  // Action
+  actionBg = loadImage("/nine_lights_final/ritual_03_images/ritual03_actionpage_.jpg");
+  actionVid = createVideo("/nine_lights_final/ritual_03_images/water_action.webm", () => {
+    actionVid.loop(); actionVid.volume(0); actionVid.hide();
+  });
 
-  pourWaterImg     = loadImage("/nine_lights_final/ritual_03/ritual03_images/pour_water.png");
-  waterDetectedImg = loadImage("/nine_lights_final/ritual_03/ritual03_images/water_detected.png");
+  pourWaterImg = loadImage("/nine_lights_final/ritual_03_images/pour_water.png");
+  waterDetectedImg = loadImage("/nine_lights_final/ritual_03_images/water_detected.png");
 
-  finalResultBg = loadImage("/nine_lights_final/ritual_03/ritual03_images/result_final.jpg");
+  // Transition
+  transBgVid = createVideo("/nine_lights_final/ritual_03_images/cloud.webm", () => {
+    transBgVid.volume(0); transBgVid.hide();
+  });
+  transFrameVid = createVideo("/nine_lights_final/ritual_03_images/transitional_page03.webm", () => {
+    transFrameVid.volume(0); transFrameVid.hide();
+  });
+
+  // Final
+  finalBg = loadImage("/nine_lights_final/ritual_03_images/ritual03_result.jpg");
+
+  patternVid = createVideo("/nine_lights_final/ritual_03_images/pattern_ritual03.webm", () => {
+    patternVid.volume(0); patternVid.hide();
+  });
+  deerVid = createVideo("/nine_lights_final/ritual_03_images/deer_motion03.webm", () => {
+    deerVid.volume(0); deerVid.hide();
+  });
 }
 
 
@@ -56,85 +88,178 @@ function preload() {
 // =====================================================
 function setup() {
   createCanvas(1080, 900);
-  imageMode(CORNER);
 
-  r3TransBgVid    = makeVid("/nine_lights_final/ritual_03/ritual03_images/cloud.webm");
-  r3TransFrameVid = makeVid("/nine_lights_final/ritual_03/ritual03_images/transitional_page03.webm");
-  finalDeerVid    = makeVid("/nine_lights_final/ritual_03/ritual03_images/result_deer_motion.webm");
-
-  // Bottom invisible button
-  bottomBtnW = 300;
-  bottomBtnH = 120;
-  bottomBtnX = width / 2 - bottomBtnW / 2;
-  bottomBtnY = height - bottomBtnH - 40;
-
-  // Connect button
-  connectBtn = createButton("Connect ESP32");
-  connectBtn.position(30, height - 90);
+  // ESP32 Connect Button (small, bottom-left)
+  connectBtn = createButton("Connect with esp 32");
+  connectBtn.position(30, height - 100);
   connectBtn.style("font-size", "14px");
   connectBtn.style("padding", "6px 10px");
-  connectBtn.style("background", "transparent");
+  connectBtn.style("background", "rgba(255,255,255,0.1)");
   connectBtn.style("border", "1px solid white");
   connectBtn.style("color", "white");
+  connectBtn.style("border-radius", "6px");
   connectBtn.mousePressed(connectSerial);
   connectBtn.hide();
-
-  // Final page invisible buttons
-  finalLeftBtnW = 250;
-  finalLeftBtnH = 120;
-  finalLeftBtnX = 60;
-  finalLeftBtnY = height - finalLeftBtnH - 40;
-
-  finalRightBtnW = 250;
-  finalRightBtnH = 120;
-  finalRightBtnX = width - finalRightBtnW - 60;
-  finalRightBtnY = height - finalRightBtnH - 40;
-
-  setState("r3_title");
 }
 
 
 // =====================================================
-// Helper
+// Draw Loop
 // =====================================================
-function makeVid(path) {
-  let v = createVideo(path);
-  v.hide();
-  v.volume(0);
-  return v;
-}
+function draw() {
+  clear();
 
-let transitionStartTime = 0;
-
-function stopAllVideos() {
-  r3TransBgVid.stop();
-  r3TransFrameVid.stop();
-  finalDeerVid.stop();
-}
-
-function setState(next) {
-  stopAllVideos();
-  appState = next;
-
-  if (next === "r3_transition") {
-    r3TransBgVid.loop();
-    r3TransFrameVid.loop();
-    transitionStartTime = millis();
+  if (appState === "title") {
+    drawTitle();
+    connectBtn.hide();
   }
-  else if (next === "r3_final") {
-    finalDeerVid.loop();
+  else if (appState === "instruction") {
+    drawInstruction();
+    connectBtn.hide();
+  }
+  else if (appState === "action") {
+    drawAction();
+    connectBtn.show();
+  }
+  else if (appState === "transition") {
+    drawTransition();
+    connectBtn.hide();
+  }
+  else if (appState === "final") {
+    drawFinal();
+    connectBtn.hide();
   }
 }
 
 
 // =====================================================
-// Serial
+// Pages
+// =====================================================
+function drawTitle() {
+  background(titleBg);
+  image(titleVid, 0, 0, width, height);
+}
+
+function drawInstruction() {
+  background(instrBg);
+  image(instrVid, 0, 0, width, height);
+}
+
+function drawAction() {
+  background(actionBg);
+  image(actionVid, 0, 0, width, height);
+
+  // Water level UI
+  fill(255);
+  textSize(26);
+  text("Water Level: " + waterLevel, 30, height - 30);
+
+  let detected = waterLevel >= waterThreshold;
+  let icon = detected ? waterDetectedImg : pourWaterImg;
+
+  let w = width * 0.3;
+  let h = icon.height * (w / icon.width);
+  let x = width / 2 - w / 2;
+  let y = height - h - 40;
+
+  if (frameCount % 60 < 30) image(icon, x, y, w, h);
+
+  // Detection logic
+  if (detected && !waterTriggered) {
+    waterTriggered = true;
+    waterDetectedTime = millis();
+  }
+
+  if (waterTriggered && millis() - waterDetectedTime > 2000) {
+    appState = "transition";
+    transStartTime = millis();
+
+    transBgVid.loop();
+    transFrameVid.loop();
+
+    actionVid.stop();
+  }
+}
+
+function drawTransition() {
+  image(transBgVid, 0, 0, width, height);
+  image(transFrameVid, 0, 0, width, height);
+
+  if (millis() - transStartTime > 7000) {
+    appState = "final";
+  }
+}
+
+
+function drawFinal() {
+
+  // Start videos ONLY when entering final (fixes disappearing bug)
+  if (!finalStarted) {
+    transBgVid.stop();
+    transFrameVid.stop();
+
+    patternVid.loop();
+    deerVid.loop();
+
+    finalStarted = true;
+  }
+
+  image(finalBg, 0, 0, width, height);
+  image(patternVid, 0, 0, width, height);
+  image(deerVid, 0, 0, width, height);
+}
+
+
+// =====================================================
+// Click Logic
+// =====================================================
+function mousePressed() {
+
+  // Bottom invisible button
+  if (mouseY > height - btnHeight) {
+
+    if (appState === "title") {
+      appState = "instruction";
+      return;
+    }
+
+    if (appState === "instruction") {
+      appState = "action";
+      return;
+    }
+  }
+
+  // Final Page Buttons
+  if (appState === "final") {
+
+    // Left Button → Back to title
+    if (
+      mouseX > finalLeftBtn.x && mouseX < finalLeftBtn.x + finalLeftBtn.w &&
+      mouseY > finalLeftBtn.y && mouseY < finalLeftBtn.y + finalLeftBtn.h
+    ) {
+      window.location.href = "/nine_lights_final/ritual_03/index.html";
+      return;
+    }
+
+    // Right Button → GitHub Project
+    if (
+      mouseX > finalRightBtn.x && mouseX < finalRightBtn.x + finalRightBtn.w &&
+      mouseY > finalRightBtn.y && mouseY < finalRightBtn.y + finalRightBtn.h
+    ) {
+      window.location.href = "https://your-github-username.github.io/nine_lights_final/";
+      return;
+    }
+  }
+}
+
+
+// =====================================================
+// SERIAL HANDLING
 // =====================================================
 async function connectSerial() {
   try {
     port = await navigator.serial.requestPort();
     await port.open({ baudRate: 9600 });
-
     startReadLoop();
   } catch (err) {
     console.log("Serial connect cancelled:", err);
@@ -166,154 +291,4 @@ async function startReadLoop() {
       }
     }
   })();
-}
-
-
-// =====================================================
-// Draw
-// =====================================================
-function draw() {
-  clear();
-
-  if (appState === "r3_title") drawTitle();
-  else if (appState === "r3_instruction") drawInstruction();
-  else if (appState === "r3_action") drawAction();
-  else if (appState === "r3_transition") drawTransition();
-  else if (appState === "r3_final") drawFinal();
-
-  if (appState === "r3_action") connectBtn.show();
-  else connectBtn.hide();
-}
-
-
-// =====================================================
-// Pages
-// =====================================================
-// ===== Title Page Fade Animation =====
-// ===== Title Page Fade Animation + Floating =====
-let fadeT = 0;     // 控制透明度的时间
-let floatT = 0;    // 控制上下浮动的时间
-
-function drawTitle() {
-
-  image(r3TitleBg, 0, 0, width, height);
-// --- Title page floating animation ---
-let floatY = 0;          // 当前位移
-let floatTarget = -30;   // 先往上 30px
-let floatSpeed = 0.02;   // 移动的平滑程度（0.01 = 很慢，0.05 = 较快）
-let blinkAlpha = 255;    // 闪烁透明度
-let blinkDir = -6;       // 闪烁方向（-6 → 变透明，+6 → 变不透明）
-
-  // ===== 更新时间 =====
-  fadeT += 0.02;   // 控制呼吸速度（越小越慢）
-  floatT += 0.01;  // 控制上下漂浮速度
-
-  // ===== 透明度动画（自然呼吸曲线） =====
-  let alpha = map(sin(fadeT), -1, 1, 50, 255);
-  // 最暗为 50，让图永远不完全消失 → 仙气更足
-
-  // ===== 漂浮动画（上下 10px 范围） =====
-  let floatOffset = sin(floatT) * -10; 
-  // 你也可以改为 * 20 让漂浮幅度更大
-
-  // ===== 绘制 r3TitleBlink（ritual_water_03.png） =====
-  push();
-  tint(255, alpha);                     // 套透明度
-  image(r3TitleBlink, 0, floatOffset, width, height); 
-  pop();
-}
-
-function drawInstruction() {
-  image(r3InstrBg, 0, 0, width, height);
-}
-
-function drawAction() {
-  image(r3ActionBg, 0, 0, width, height);
-
-  fill(255);
-  textSize(26);
-  textAlign(LEFT, BOTTOM);
-  text("Water Level: " + waterLevel, 30, height - 30);
-
-  let detected = waterLevel >= waterThreshold;
-  let icon = detected ? waterDetectedImg : pourWaterImg;
-
-  let w = width * 0.3;
-  let h = icon.height * (w / icon.width);
-  let x = width / 2 - w / 2;
-  let y = height - h - 40;
-
-  if (frameCount % 60 < 30) image(icon, x, y, w, h);
-
-  if (detected && !waterTriggered) {
-    waterTriggered = true;
-    waterDetectedTime = millis();
-  }
-
-  if (waterTriggered && millis() - waterDetectedTime > 6000) {
-    setState("r3_transition");
-  }
-}
-
-function drawTransition() {
-  image(r3TransBgVid, 0, 0, width, height);
-  image(r3TransFrameVid, 0, 0, width, height);
-
-  if (millis() - transitionStartTime > 10000) {
-    setState("r3_final");
-  }
-}
-
-function drawFinal() {
-  image(finalResultBg, 0, 0, width, height);
-  image(finalDeerVid, 0, 0, width, height);
-}
-
-
-// =====================================================
-// Mouse
-// =====================================================
-function mousePressed() {
-
-  // Title → Instruction
-  if (appState === "r3_title" && insideBottom()) {
-    setState("r3_instruction");
-  }
-
-  // Instruction → Action
-  else if (appState === "r3_instruction" && insideBottom()) {
-    setState("r3_action");
-  }
-
-  // ⭐ FINAL PAGE BUTTONS ⭐
-  else if (appState === "r3_final") {
-
-    // 左下角 → 回到 instruction
-   // 左下角 → 回到 starter page
-if (
-  mouseX > finalLeftBtnX && mouseX < finalLeftBtnX + finalLeftBtnW &&
-  mouseY > finalLeftBtnY && mouseY < finalLeftBtnY + finalLeftBtnH
-) {
-  window.location.href = "/nine_lights_final/index.html";
-  return;
-}
-
-// 右下角 → Ritual 01
-if (
-  mouseX > finalRightBtnX && mouseX < finalRightBtnX + finalRightBtnW &&
-  mouseY > finalRightBtnY && mouseY < finalRightBtnY + finalRightBtnH
-) {
-  window.location.href = "/nine_lights_final/ritual_01/index.html";
-  return;
-    }
-  }
-}
-
-function insideBottom() {
-  return (
-    mouseX > bottomBtnX &&
-    mouseX < bottomBtnX + bottomBtnW &&
-    mouseY > bottomBtnY &&
-    mouseY < bottomBtnY + bottomBtnH
-  );
 }
