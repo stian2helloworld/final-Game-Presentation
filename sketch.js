@@ -3,17 +3,13 @@ let appState = "title";
 let bgTitleVid;
 let logoVid;
 
-let btnX, btnY, btnW, btnH;
 let instructionBg;
 let instructionVid;
 
 let topBtnX, topBtnY, topBtnW, topBtnH;
 
-// ⭐ New — title page button image
+// ⭐ Title page full-size button (1080×900 PNG)
 let titleBtnImg;
-let titleBtnW = 300;
-let titleBtnH = 120;
-let titleBtnX, titleBtnY;
 
 function preload() {
   // Title background VIDEO
@@ -28,7 +24,7 @@ function preload() {
   logoVid.volume(0);
   logoVid.attribute("muted", "");
 
-  // ⭐ Load new button image
+  // ⭐ Load full-size button image
   titleBtnImg = loadImage("/nine_lights_final/title_page/button_title_page.png");
 
   // Instruction background
@@ -48,23 +44,11 @@ function setup() {
   logoVid.loop();
   instructionVid.loop();
 
-  // Invisible bottom button size ONLY for instruction page
-  btnW = 300;
-  btnH = 120;
-  btnX = width / 2 - btnW / 2;
-  btnY = height - 160;
-
-  // Back button
+  // Back button for instruction page
   topBtnW = 150;
   topBtnH = 150;
   topBtnX = 20;
   topBtnY = 20;
-
-  // ⭐ Position title-page button (bottom center)
-  titleBtnW = 300;
-  titleBtnH = 120;
-  titleBtnX = width / 2 - titleBtnW / 2;
-  titleBtnY = height - 180;
 }
 
 function draw() {
@@ -87,8 +71,9 @@ function drawTitlePage() {
     height / 2 - logoVid.height / 2
   );
 
-  // ⭐ Draw the button image
-  image(titleBtnImg, titleBtnX, titleBtnY, titleBtnW, titleBtnH);
+  // ⭐ Full-size button overlay (1080×900 PNG)
+  // This will appear on top of the background & logo
+  image(titleBtnImg, 0, 0);
 }
 
 function drawInstructionPage() {
@@ -100,19 +85,15 @@ function drawInstructionPage() {
   );
 }
 
-// --------------------------------------------------
-// Unified Mouse Pressed
-// --------------------------------------------------
 function mousePressed() {
 
-  // ===== TITLE PAGE =====
+  // ===== TITLE PAGE (click anywhere on the PNG) =====
   if (appState === "title") {
 
-    // ⭐ Button image clickable area
-    if (
-      mouseX > titleBtnX && mouseX < titleBtnX + titleBtnW &&
-      mouseY > titleBtnY && mouseY < titleBtnY + titleBtnH
-    ) {
+    // ⭐ Entire 1080×900 PNG is clickable
+    if (mouseX >= 0 && mouseX <= width &&
+        mouseY >= 0 && mouseY <= height) {
+
       appState = "instruction";
       return;
     }
@@ -121,7 +102,7 @@ function mousePressed() {
   // ===== INSTRUCTION PAGE =====
   else if (appState === "instruction") {
 
-    // Top-left back button
+    // Back button
     if (
       mouseX > topBtnX && mouseX < topBtnX + topBtnW &&
       mouseY > topBtnY && mouseY < topBtnY + topBtnH
@@ -132,8 +113,8 @@ function mousePressed() {
 
     // Bottom button → Ritual 01
     if (
-      mouseX > btnX && mouseX < btnX + btnW &&
-      mouseY > btnY && mouseY < btnY + btnH
+      mouseX > 0 && mouseX < width &&
+      mouseY > height - 200 && mouseY < height
     ) {
       window.location.href = "/nine_lights_final/ritual_01/index.html";
       return;
