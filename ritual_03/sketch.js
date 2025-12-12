@@ -237,7 +237,7 @@ function mousePressed() {
       mouseX > finalLeftBtn.x && mouseX < finalLeftBtn.x + finalLeftBtn.w &&
       mouseY > finalLeftBtn.y && mouseY < finalLeftBtn.y + finalLeftBtn.h
     ) {
-      window.location.href = "/nine_lights_final/ritual_03/index.html";
+      window.location.href = "/nine_lights_final/index.html";
       return;
     }
 
@@ -246,7 +246,7 @@ function mousePressed() {
       mouseX > finalRightBtn.x && mouseX < finalRightBtn.x + finalRightBtn.w &&
       mouseY > finalRightBtn.y && mouseY < finalRightBtn.y + finalRightBtn.h
     ) {
-      window.location.href = "https://your-github-username.github.io/nine_lights_final/";
+      window.location.href = "/nine_lights_final/final_result/index.html";
       return;
     }
   }
