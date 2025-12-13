@@ -22,61 +22,55 @@ let instructionVid;
 let titleBtnImg;
 
 // ======================================
-// Invisible Buttons
-// ======================================
-
-// Title page invisible button
-let titleBtnX = 390;
-let titleBtnY = 650;
-let titleBtnW = 300;
-let titleBtnH = 160;
-
-// Instruction page buttons
-let topBtnX, topBtnY, topBtnW, topBtnH;
-let bottomBtnY = 700;
-
-// ======================================
-// Welcome Cover (Intro Phase)
+// Welcome Cover
 // ======================================
 let welcomeCoverImg;
 let welcomeCoverTextImg;
 let soundDownImg;
 
 let coverStartTime = 0;
-let coverDuration = 5000; // 5 seconds
+let coverDuration = 5000; // 5s
 let soundDownClicked = false;
 
 // ======================================
-// Preload (ONLY asset loading)
+// Invisible Areas
+// ======================================
+
+// title 主按钮
+let titleBtn = { x: 390, y: 650, w: 300, h: 160 };
+
+// sound_down 区域（你现在是整屏）
+let soundDownArea = { x: 0, y: 0, w: 1080, h: 900 };
+
+// instruction
+let topBtn = { x: 20, y: 20, w: 150, h: 150 };
+let bottomBtnY = 700;
+
+// ======================================
+// Preload
 // ======================================
 function preload() {
+  welcomeSound = loadSound("audio/welcome_page_.mp3");
+  clickSound   = loadSound("audio/clicking_sound.mp3");
 
-  // ----- Audio -----
-  welcomeSound = loadSound("/nine_lights_final/audio/welcome_page_.mp3");
-  clickSound = loadSound("/nine_lights_final/audio/clicking_sound.mp3");
+  welcomeCoverImg     = loadImage("title_page/welcome_cover.png");
+  welcomeCoverTextImg = loadImage("title_page/welcome_cover_text.png");
+  soundDownImg        = loadImage("title_page/sound_down.png");
 
-  // ----- Welcome cover -----
-welcomeCoverImg = loadImage("/nine_lights_final/title_page/welcome_cover.png");
-welcomeCoverTextImg = loadImage("/nine_lights_final/title_page/welcome_cover_text.png");
-soundDownImg = loadImage("/nine_lights_final/title_page/sound_down.png");
-
-  // ----- Title page -----
-  bgTitleVid = createVideo("/nine_lights_final/title_page/welcome_page.webm");
+  bgTitleVid = createVideo("title_page/welcome_page.webm");
   bgTitleVid.hide();
   bgTitleVid.volume(0);
   bgTitleVid.attribute("muted", "");
 
-  logoVid = createVideo("/nine_lights_final/title_page/title_page.webm");
+  logoVid = createVideo("title_page/title_page.webm");
   logoVid.hide();
   logoVid.volume(0);
   logoVid.attribute("muted", "");
 
-  titleBtnImg = loadImage("/nine_lights_final/title_page/button_title_page.png");
+  titleBtnImg = loadImage("title_page/button_title_page.png");
 
-  // ----- Instruction page -----
-  instructionBg = loadImage("/nine_lights_final/general_instruction/instruction_page.jpg");
-
-  instructionVid = createVideo("/nine_lights_final/general_instruction/general_instruction.webm");
+  instructionBg  = loadImage("general_instruction/instruction_page.jpg");
+  instructionVid = createVideo("general_instruction/general_instruction.webm");
   instructionVid.hide();
   instructionVid.volume(0);
   instructionVid.attribute("muted", "");
@@ -95,33 +89,22 @@ function setup() {
   welcomeSound.setVolume(0.35);
   clickSound.setVolume(0.6);
 
-  topBtnW = 150;
-  topBtnH = 150;
-  topBtnX = 20;
-  topBtnY = 20;
-
-  // ⭐ start cover timer
   coverStartTime = millis();
 }
 
 // ======================================
-// Audio starter (called once)
+// Helpers
 // ======================================
 function startWelcomeAudio() {
   if (!audioStarted) {
-    userStartAudio();      // unlock browser audio
-    welcomeSound.loop();   // ambient loop
+    userStartAudio();
+    welcomeSound.loop();
     audioStarted = true;
   }
 }
 
-// ======================================
-// Click sound helper (prevents overlap)
-// ======================================
 function playClick() {
-  if (clickSound.isPlaying()) {
-    clickSound.stop();
-  }
+  if (clickSound.isPlaying()) clickSound.stop();
   clickSound.play();
 }
 
@@ -129,20 +112,15 @@ function playClick() {
 // Draw
 // ======================================
 function draw() {
-  if (appState === "title") {
-    drawTitlePage();
-  } else if (appState === "instruction") {
-    drawInstructionPage();
-  }
+  if (appState === "title") drawTitle();
+  else if (appState === "instruction") drawInstruction();
 }
 
 // ======================================
 // Title Page
 // ======================================
-function drawTitlePage() {
-
+function drawTitle() {
   image(bgTitleVid, 0, 0, width, height);
-
   image(
     logoVid,
     width / 2 - logoVid.width / 2,
@@ -151,45 +129,33 @@ function drawTitlePage() {
 
   let elapsed = millis() - coverStartTime;
 
-  // ======================================
-  // Phase 1: First 3 seconds — cover + blinking text
-  // ======================================
+  // ===== Phase 1: Cover + blinking text =====
   if (elapsed < coverDuration) {
-
-    // Cover image
     image(welcomeCoverImg, 0, 0, width, height);
 
-    // Blinking cover text
-    let alpha = map(
-      sin(frameCount * 0.08),
-      -1, 1,
-      120, 255
-    );
-
-    push();
-    tint(255, alpha);
-    image(welcomeCoverTextImg, 0, 0, width, height);
-    pop();
-
-    return; // ⛔ 不往下画
+    if (frameCount % 60 < 30) {
+      image(welcomeCoverTextImg, 0, 0, width, height);
+    }
+    return;
   }
 
-  // ======================================
-// Phase 2: After 3 seconds
-// ======================================
-
-// ✅ A) sound_down 只有没点击过才显示
-// ✅ A) sound_down：正常 blinking（无渐变）
-if (!soundDownClicked) {
-  if (frameCount % 60 < 30) {   // 显示 30 帧，消失 30 帧
-    image(soundDownImg, 0, 0, width, height);
+  // ===== Phase 2: sound_down =====
+  if (!soundDownClicked) {
+    if (frameCount % 60 < 30) {
+      image(soundDownImg, 0, 0, width, height);
+    }
   }
-}
 
-// ✅ B) title button 永远显示（不受 soundDownClicked 影响）
-let alphaBtn = map(sin(frameCount * 0.08), -1, 1, 120, 255);
+  // ===== Title button – gradient blinking =====
+let blinkSpeed = 0.05;              // 控制呼吸速度
+let alphaVal = map(
+  sin(frameCount * blinkSpeed),
+  -1, 1,
+  80, 255                         // 渐变范围（可调）
+);
+
 push();
-tint(255, alphaBtn);
+tint(255, alphaVal);
 image(titleBtnImg, 0, 0, width, height);
 pop();
 }
@@ -197,10 +163,8 @@ pop();
 // ======================================
 // Instruction Page
 // ======================================
-function drawInstructionPage() {
-
+function drawInstruction() {
   image(instructionBg, 0, 0, width, height);
-
   image(
     instructionVid,
     width / 2 - instructionVid.width / 2,
@@ -213,25 +177,33 @@ function drawInstructionPage() {
 // ======================================
 function mousePressed() {
 
-  // Start ambient sound on first interaction
-  startWelcomeAudio();
-
-  // ⭐【关键】如果在 title 页，并且已经过了 3 秒 cover
+  // =========================
+  // TITLE PAGE
+  // =========================
   if (appState === "title") {
+
     let elapsed = millis() - coverStartTime;
-    if (elapsed >= coverDuration) {
-      soundDownClicked = true; // ← 这一行是你缺的
-    }
-  }
-  
-  // ----- TITLE PAGE -----
-  if (appState === "title") {
 
+    // 1️⃣ sound_down：只负责开声音
     if (
-      mouseX > titleBtnX &&
-      mouseX < titleBtnX + titleBtnW &&
-      mouseY > titleBtnY &&
-      mouseY < titleBtnY + titleBtnH
+      elapsed >= coverDuration &&
+      !soundDownClicked &&
+      mouseX > soundDownArea.x &&
+      mouseX < soundDownArea.x + soundDownArea.w &&
+      mouseY > soundDownArea.y &&
+      mouseY < soundDownArea.y + soundDownArea.h
+    ) {
+      startWelcomeAudio();
+      soundDownClicked = true;
+      return;
+    }
+
+    // 2️⃣ title 主按钮 → instruction
+    if (
+      mouseX > titleBtn.x &&
+      mouseX < titleBtn.x + titleBtn.w &&
+      mouseY > titleBtn.y &&
+      mouseY < titleBtn.y + titleBtn.h
     ) {
       playClick();
       appState = "instruction";
@@ -239,22 +211,24 @@ function mousePressed() {
     }
   }
 
-  // ----- INSTRUCTION PAGE -----
+  // =========================
+  // INSTRUCTION PAGE
+  // =========================
   else if (appState === "instruction") {
 
-    // Back to title
+    // back
     if (
-      mouseX > topBtnX &&
-      mouseX < topBtnX + topBtnW &&
-      mouseY > topBtnY &&
-      mouseY < topBtnY + topBtnH
+      mouseX > topBtn.x &&
+      mouseX < topBtn.x + topBtn.w &&
+      mouseY > topBtn.y &&
+      mouseY < topBtn.y + topBtn.h
     ) {
       playClick();
       appState = "title";
       return;
     }
 
-    // Go to Ritual 01
+    // go ritual 01
     if (
       mouseX > 0 &&
       mouseX < width &&
