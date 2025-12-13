@@ -14,6 +14,14 @@ const waterThreshold = 1023;
 // ---------- App States ----------
 let appState = "title";
 
+// ---------- SOUND ----------
+let waterBGM;
+let transitionBGM;
+let resultBGM;
+let clickSound;
+
+let audioUnlocked = false;
+
 // ---------- Assets ----------
 let titleBg, instrBg, actionBg, finalBg;
 let titleVid, instrVid, actionVid;
@@ -42,42 +50,48 @@ let connectBtn;
 // Preload
 // =====================================================
 function preload() {
+  // ----- SOUND -----
+waterBGM = loadSound("/nine_lights_final/ritual_03/audio_03/water_sound.mp3");
+transitionBGM = loadSound("/nine_lights_final/ritual_03/audio_03/transitional_sound.mp3");
+resultBGM = loadSound("/nine_lights_final/ritual_03/audio_03/result_page_03.mp3");
+clickSound = loadSound("/nine_lights_final/ritual_03/audio_03/clicking_sound.mp3");
+
   // Title
-  titleBg = loadImage("/nine_lights_final/ritual_03_images/ritual03_titlepage.jpg");
-  titleVid = createVideo("/nine_lights_final/ritual_03_images/ritual_water_03.webm", () => {
+  titleBg = loadImage("/nine_lights_final/ritual_03/ritual_03_images/ritual03_titlepage.jpg");
+  titleVid = createVideo("/nine_lights_final/ritual_03/ritual_03_images/ritual_water_03.webm", () => {
     titleVid.loop(); titleVid.volume(0); titleVid.hide();
   });
 
   // Instruction
-  instrBg = loadImage("/nine_lights_final/ritual_03_images/ritual03_instructionpage.jpg");
-  instrVid = createVideo("/nine_lights_final/ritual_03_images/water_ritual03_instruction.webm", () => {
+  instrBg = loadImage("/nine_lights_final/ritual_03/ritual_03_images/ritual03_instructionpage.jpg");
+  instrVid = createVideo("/nine_lights_final/ritual_03/ritual_03_images/water_ritual03_instruction.webm", () => {
     instrVid.loop(); instrVid.volume(0); instrVid.hide();
   });
 
   // Action
-  actionBg = loadImage("/nine_lights_final/ritual_03_images/ritual03_actionpage_.jpg");
-  actionVid = createVideo("/nine_lights_final/ritual_03_images/water_action.webm", () => {
+  actionBg = loadImage("/nine_lights_final/ritual_03/ritual_03_images/ritual03_actionpage_.jpg");
+  actionVid = createVideo("/nine_lights_final/ritual_03/ritual_03_images/water_action.webm", () => {
     actionVid.loop(); actionVid.volume(0); actionVid.hide();
   });
 
-  pourWaterImg = loadImage("/nine_lights_final/ritual_03_images/pour_water.png");
-  waterDetectedImg = loadImage("/nine_lights_final/ritual_03_images/water_detected.png");
+  pourWaterImg = loadImage("/nine_lights_final/ritual_03/ritual_03_images/pour_water.png");
+  waterDetectedImg = loadImage("/nine_lights_final/ritual_03/ritual_03_images/water_detected.png");
 
   // Transition
-  transBgVid = createVideo("/nine_lights_final/ritual_03_images/cloud.webm", () => {
+  transBgVid = createVideo("/nine_lights_final/ritual_03/ritual_03_images/cloud.webm", () => {
     transBgVid.volume(0); transBgVid.hide();
   });
-  transFrameVid = createVideo("/nine_lights_final/ritual_03_images/transitional_page03.webm", () => {
+  transFrameVid = createVideo("/nine_lights_final/ritual_03/ritual_03_images/transitional_page03.webm", () => {
     transFrameVid.volume(0); transFrameVid.hide();
   });
 
   // Final
-  finalBg = loadImage("/nine_lights_final/ritual_03_images/ritual03_result.jpg");
+  finalBg = loadImage("/nine_lights_final/ritual_03/ritual_03_images/ritual03_result.jpg");
 
-  patternVid = createVideo("/nine_lights_final/ritual_03_images/pattern_ritual03.webm", () => {
+  patternVid = createVideo("/nine_lights_final/ritual_03/ritual_03_images/pattern_ritual03.webm", () => {
     patternVid.volume(0); patternVid.hide();
   });
-  deerVid = createVideo("/nine_lights_final/ritual_03_images/deer_motion03.webm", () => {
+  deerVid = createVideo("/nine_lights_final/ritual_03/ritual_03_images/deer_motion03.webm", () => {
     deerVid.volume(0); deerVid.hide();
   });
 }
@@ -102,6 +116,14 @@ function setup() {
   connectBtn.hide();
 }
 
+function startWaterBGM() {
+  if (!audioUnlocked) {
+    userStartAudio();           // 解锁浏览器音频
+    waterBGM.loop();
+    waterBGM.setVolume(0.4);
+    audioUnlocked = true;
+  }
+}
 
 // =====================================================
 // Draw Loop
@@ -171,14 +193,19 @@ function drawAction() {
   }
 
   if (waterTriggered && millis() - waterDetectedTime > 2000) {
-    appState = "transition";
-    transStartTime = millis();
+  appState = "transition";
+  transStartTime = millis();
 
-    transBgVid.loop();
-    transFrameVid.loop();
+  // 🔊 SOUND SWITCH
+  waterBGM.stop();
+  transitionBGM.loop();
+  transitionBGM.setVolume(0.45);
 
-    actionVid.stop();
-  }
+  transBgVid.loop();
+  transFrameVid.loop();
+
+  actionVid.stop();
+}
 }
 
 function drawTransition() {
@@ -195,14 +222,20 @@ function drawFinal() {
 
   // Start videos ONLY when entering final (fixes disappearing bug)
   if (!finalStarted) {
-    transBgVid.stop();
-    transFrameVid.stop();
 
-    patternVid.loop();
-    deerVid.loop();
+  transitionBGM.stop();
 
-    finalStarted = true;
-  }
+  resultBGM.loop();
+  resultBGM.setVolume(0.35);
+
+  transBgVid.stop();
+  transFrameVid.stop();
+
+  patternVid.loop();
+  deerVid.loop();
+
+  finalStarted = true;
+}
 
   image(finalBg, 0, 0, width, height);
   image(patternVid, 0, 0, width, height);
@@ -215,8 +248,16 @@ function drawFinal() {
 // =====================================================
 function mousePressed() {
 
+  // ⭐ Title page: 任意点击一次 → 解锁并播放 water BGM
+  if (appState === "title") {
+    startWaterBGM();
+  }
+
   // Bottom invisible button
   if (mouseY > height - btnHeight) {
+
+    // 🔊 ADD: clicking sound（只有点到按钮区域才响）
+    clickSound.play();
 
     if (appState === "title") {
       appState = "instruction";
@@ -237,6 +278,9 @@ function mousePressed() {
       mouseX > finalLeftBtn.x && mouseX < finalLeftBtn.x + finalLeftBtn.w &&
       mouseY > finalLeftBtn.y && mouseY < finalLeftBtn.y + finalLeftBtn.h
     ) {
+      // 🔊 ADD
+      clickSound.play();
+
       window.location.href = "/nine_lights_final/index.html";
       return;
     }
@@ -246,6 +290,9 @@ function mousePressed() {
       mouseX > finalRightBtn.x && mouseX < finalRightBtn.x + finalRightBtn.w &&
       mouseY > finalRightBtn.y && mouseY < finalRightBtn.y + finalRightBtn.h
     ) {
+      // 🔊 ADD
+      clickSound.play();
+
       window.location.href = "/nine_lights_final/final_result/index.html";
       return;
     }
@@ -262,7 +309,7 @@ async function connectSerial() {
     await port.open({ baudRate: 9600 });
     startReadLoop();
   } catch (err) {
-    console.log("Serial connect cancelled:", err);
+    console.log("Serial connect connected:", err);
   }
 }
 
