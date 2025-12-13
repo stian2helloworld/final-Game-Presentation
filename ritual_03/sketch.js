@@ -12,7 +12,7 @@ let waterDetectedTime = 0;
 const waterThreshold = 1023;
 
 // ---------- App States ----------
-let appState = "title";
+let appState = "r3_title";
 
 // ---------- SOUND ----------
 let waterBGM;
@@ -37,8 +37,8 @@ let pourWaterImg, waterDetectedImg;
 const btnHeight = 200;
 
 // Final page invisible buttons
-let finalLeftBtn = { x: 60, y: 1600, w: 300, h: 200 };
-let finalRightBtn = { x: 720, y: 1600, w: 300, h: 200 };
+let finalLeftBtn  = { x: 60,  y: height - 200, w: 300, h: 160 };
+let finalRightBtn = { x: 720, y: height - 200, w: 300, h: 160 };
 
 // Transition timer
 let transStartTime = 0;
@@ -137,24 +137,24 @@ function startWaterBGM() {
 function draw() {
   clear();
 
-  if (appState === "title") {
-    drawTitle();
+  if (appState === "r3_title") {
+    drawR3Title();
     connectBtn.hide();
   }
-  else if (appState === "instruction") {
-    drawInstruction();
+  else if (appState === "r3_instruction") {
+    drawR3Instruction();
     connectBtn.hide();
   }
-  else if (appState === "action") {
-    drawAction();
+  else if (appState === "r3_action") {
+    drawR3Action();
     connectBtn.show();
   }
-  else if (appState === "transition") {
-    drawTransition();
+  else if (appState === "r3_transition") {
+    drawR3Transition();
     connectBtn.hide();
   }
-  else if (appState === "final") {
-    drawFinal();
+  else if (appState === "r3_result") {
+    drawR3Result();
     connectBtn.hide();
   }
 }
@@ -163,28 +163,26 @@ function draw() {
 // =====================================================
 // Pages
 // =====================================================
-function drawTitle() {
+function drawR3Title() {
   background(titleBg);
   image(titleVid, 0, 0, width, height);
 
-  // 🔊 sound_down 提示（未解锁音频时显示）
   if (!audioUnlocked && soundDownVisible) {
-    if (frameCount % 60 < 30) {   // 纯 blinking
+    if (frameCount % 60 < 30) {
       image(soundDownImg, 0, 0, width, height);
     }
   }
 }
 
-function drawInstruction() {
+function drawR3Instruction() {
   background(instrBg);
   image(instrVid, 0, 0, width, height);
 }
 
-function drawAction() {
+function drawR3Action() {
   background(actionBg);
   image(actionVid, 0, 0, width, height);
 
-  // Water level UI
   fill(255);
   textSize(26);
   text("Water Level: " + waterLevel, 30, height - 30);
@@ -199,56 +197,51 @@ function drawAction() {
 
   if (frameCount % 60 < 30) image(icon, x, y, w, h);
 
-  // Detection logic
   if (detected && !waterTriggered) {
     waterTriggered = true;
     waterDetectedTime = millis();
   }
 
   if (waterTriggered && millis() - waterDetectedTime > 2000) {
-  appState = "transition";
-  transStartTime = millis();
+    appState = "r3_transition";
+    transStartTime = millis();
 
-  // 🔊 SOUND SWITCH
-  waterBGM.stop();
-  transitionBGM.loop();
-  transitionBGM.setVolume(0.45);
+    waterBGM.stop();
+    transitionBGM.loop();
+    transitionBGM.setVolume(0.45);
 
-  transBgVid.loop();
-  transFrameVid.loop();
+    transBgVid.loop();
+    transFrameVid.loop();
 
-  actionVid.stop();
+    actionVid.stop();
+  }
 }
-}
 
-function drawTransition() {
+function drawR3Transition() {
   image(transBgVid, 0, 0, width, height);
   image(transFrameVid, 0, 0, width, height);
 
   if (millis() - transStartTime > 7000) {
-    appState = "final";
+    appState = "r3_result";
   }
 }
 
+function drawR3Result() {
 
-function drawFinal() {
-
-  // Start videos ONLY when entering final (fixes disappearing bug)
   if (!finalStarted) {
+    transitionBGM.stop();
 
-  transitionBGM.stop();
+    resultBGM.loop();
+    resultBGM.setVolume(0.35);
 
-  resultBGM.loop();
-  resultBGM.setVolume(0.35);
+    transBgVid.stop();
+    transFrameVid.stop();
 
-  transBgVid.stop();
-  transFrameVid.stop();
+    patternVid.loop();
+    deerVid.loop();
 
-  patternVid.loop();
-  deerVid.loop();
-
-  finalStarted = true;
-}
+    finalStarted = true;
+  }
 
   image(finalBg, 0, 0, width, height);
   image(patternVid, 0, 0, width, height);
@@ -261,50 +254,54 @@ function drawFinal() {
 // =====================================================
 function mousePressed() {
 
-  // ⭐ TITLE：第一次点击 sound_down → 只解锁音频，不做任何跳转
-  if (appState === "title" && !audioUnlocked) {
+  // --- TITLE：第一次点击解锁音频 ---
+  if (appState === "r3_title" && !audioUnlocked) {
     startWaterBGM();
     soundDownVisible = false;
-    return; // ⛔ 关键：直接中断，防止命中底部按钮
+    return;
   }
 
-  // Bottom invisible button（只在音频已解锁后生效）
-  if (mouseY > height - btnHeight) {
-
-    clickSound.play();
-
-    if (appState === "title") {
-      appState = "instruction";
-      return;
-    }
-
-    if (appState === "instruction") {
-      appState = "action";
+  // --- TITLE → INSTRUCTION ---
+  if (appState === "r3_title") {
+    if (mouseY > height - btnHeight) {
+      clickSound.play();
+      appState = "r3_instruction";
       return;
     }
   }
 
-  // Final Page Buttons —— 在 result 状态下生效
-if (appState === "result") {
-
-  if (
-    mouseX > finalLeftBtn.x && mouseX < finalLeftBtn.x + finalLeftBtn.w &&
-    mouseY > finalLeftBtn.y && mouseY < finalLeftBtn.y + finalLeftBtn.h
-  ) {
-    clickSound.play();
-    window.location.href = "/nine_lights_final/index.html";
-    return;
+  // --- INSTRUCTION → ACTION ---
+  else if (appState === "r3_instruction") {
+    if (mouseY > height - btnHeight) {
+      clickSound.play();
+      appState = "r3_action";
+      return;
+    }
   }
 
-  if (
-    mouseX > finalRightBtn.x && mouseX < finalRightBtn.x + finalRightBtn.w &&
-    mouseY > finalRightBtn.y && mouseY < finalRightBtn.y + finalRightBtn.h
-  ) {
-    clickSound.play();
-    window.location.href = "/nine_lights_final/final_result/index.html";
-    return;
+  // --- RESULT（对齐 Ritual 02）---
+  else if (appState === "r3_result") {
+
+    // left → 回到总首页
+    if (
+      mouseX > finalLeftBtn.x && mouseX < finalLeftBtn.x + finalLeftBtn.w &&
+      mouseY > finalLeftBtn.y && mouseY < finalLeftBtn.y + finalLeftBtn.h
+    ) {
+      clickSound.play();
+      window.location.href = "/nine_lights_final/index.html";
+      return;
+    }
+
+    // right → Final Result Page
+    if (
+      mouseX > finalRightBtn.x && mouseX < finalRightBtn.x + finalRightBtn.w &&
+      mouseY > finalRightBtn.y && mouseY < finalRightBtn.y + finalRightBtn.h
+    ) {
+      clickSound.play();
+      window.location.href = "/nine_lights_final/final_result/index.html";
+      return;
+    }
   }
-}
 }
 
 
