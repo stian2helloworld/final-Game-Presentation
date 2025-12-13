@@ -5,6 +5,16 @@
 // ===== Global Variables =====
 let mic, fft;
 
+// ===== Audio =====
+let bgmR2;
+let clickSound;
+let transitionSound;
+let resultSound;
+
+let bgmStarted = false;
+let transitionSoundPlayed = false;
+let resultSoundStarted = false;
+
 // State Machine
 let appState = "r2_title";
 // Pages: "r2_title", "r2_instruction", "r2_action", "r2_transition", "r2_result"
@@ -54,20 +64,25 @@ let transitionStartTime = 0;
 // Preload
 // =======================================================
 function preload() {
-
+// ===== Audio =====
+bgmR2 = loadSound("audio_02/bell_sound.mp3");
+clickSound = loadSound("audio_02/clicking_sound.mp3");
+transitionSound = loadSound("audio_02/transitional_sound.mp3");
+resultSound = loadSound("audio_02/result_page_02.mp3");
+  
   // Title
-  r2TitleBg = loadImage("/nine_lights_final/ritual_02/ritual02_images/ritual02_bgpage.jpg");
+  r2TitleBg = loadImage("ritual02_images/ritual02_bgpage.jpg");
 
   // Instruction
-  r2InstrBg = loadImage("/nine_lights_final/ritual_02/ritual02_images/ritual02_intro.jpg");
+  r2InstrBg = loadImage("ritual02_images/ritual02_intro.jpg");
 
   // Action
-  r2ActionBg = loadImage("/nine_lights_final/ritual_02/ritual02_images/ritual02_action.jpg");
-  r2RingBellImg = loadImage("/nine_lights_final/ritual_02/ritual02_images/ring_bell.png");
-  r2SoundDetectedImg = loadImage("/nine_lights_final/ritual_02/ritual02_images/bell_detected.png");
+  r2ActionBg = loadImage("ritual02_images/ritual02_action.jpg");
+  r2RingBellImg = loadImage("ritual02_images/ring_bell.png");
+  r2SoundDetectedImg = loadImage("ritual02_images/bell_detected.png");
 
   // Result
-  r2ResultBg = loadImage("/nine_lights_final/ritual_02/ritual02_images/ritual02_result.jpg");
+  r2ResultBg = loadImage("ritual02_images/ritual02_result.jpg");
 }
 
 
@@ -78,6 +93,11 @@ function preload() {
 function setup() {
   createCanvas(1080, 900);
 
+  bgmR2.setVolume(0.35);
+clickSound.setVolume(0.6);
+transitionSound.setVolume(0.5);
+resultSound.setVolume(0.4);
+
   // ----- AUDIO -----
   mic = new p5.AudioIn();
   mic.start();
@@ -85,32 +105,32 @@ function setup() {
   fft.setInput(mic);
 
   // ----- VIDEO ELEMENTS -----
-  r2TitleVid = createVideo("/nine_lights_final/ritual_02/ritual02_images/bell_motion.webm");
+  r2TitleVid = createVideo("ritual02_images/bell_motion.webm");
   r2TitleVid.hide();
   r2TitleVid.loop();
 
-  r2InstrVid = createVideo("/nine_lights_final/ritual_02/ritual02_images/bell_instruction.webm");
+  r2InstrVid = createVideo("ritual02_images/bell_instruction.webm");
   r2InstrVid.hide();
   r2InstrVid.loop();
 
-  r2ActionVid = createVideo("/nine_lights_final/ritual_02/ritual02_images/ritual_sound_activation.webm");
+  r2ActionVid = createVideo("ritual02_images/ritual_sound_activation.webm");
   r2ActionVid.hide();
   r2ActionVid.loop();
 
-  r2TransBgVid = createVideo("/nine_lights_final/ritual_02/ritual02_images/cloud.webm");
+  r2TransBgVid = createVideo("ritual02_images/cloud.webm");
   r2TransBgVid.hide();
   r2TransBgVid.loop();
 
-  r2TransFrameVid = createVideo("/nine_lights_final/ritual_02/ritual02_images/transitional_page02.webm");
+  r2TransFrameVid = createVideo("ritual02_images/transitional_page02.webm");
   r2TransFrameVid.hide();
   r2TransFrameVid.loop();
 
-  r2PatternVid = createVideo("/nine_lights_final/ritual_02/ritual02_images/pattern_ritual02.webm");
+  r2PatternVid = createVideo("ritual02_images/pattern_ritual02.webm");
   r2PatternVid.hide();
   r2PatternVid.loop();
   r2PatternVid.speed(0.5); // 慢一点更梦幻
 
-  r2DeerVid = createVideo("/nine_lights_final/ritual_02/ritual02_images/deer_motion02.webm");
+  r2DeerVid = createVideo("ritual02_images/deer_motion02.webm");
   r2DeerVid.hide();
   r2DeerVid.loop();
 
@@ -132,7 +152,24 @@ function setup() {
   resultNextBtnY = height - resultNextBtnH - 40;
 }
 
+function startBGM() {
+  if (!bgmStarted) {
+    userStartAudio();      // 浏览器解锁
+    bgmR2.loop();
+    bgmStarted = true;
+  }
+}
 
+function playClick() {
+  if (clickSound.isPlaying()) clickSound.stop();
+  clickSound.play();
+}
+
+function stopBGM() {
+  if (bgmR2 && bgmR2.isPlaying()) {
+    bgmR2.stop();
+  }
+}
 
 // =======================================================
 // Draw Loop
@@ -226,7 +263,17 @@ if (detectCount >= 7 && !bellTriggered) {
 }
 
 // ===== 铃声完成后停留 3 秒再跳转 =====
-if (bellTriggered && millis() - bellCompletedTime > 3000) {
+if (bellTriggered && millis() - bellCompletedTime > 2000) {
+
+  // 🔊 停止 BGM
+  stopBGM();
+
+  // 🔊 播放 transition sound（一次）
+  if (!transitionSoundPlayed) {
+    transitionSound.play();
+    transitionSoundPlayed = true;
+  }
+
   appState = "r2_transition";
   transitionStartTime = millis();
   return;
@@ -261,8 +308,13 @@ function drawR2Transition() {
 
   // 自动 30 秒后跳 result
   if (millis() - transitionStartTime > 6000) { 
-    appState = "r2_result";
+  appState = "r2_result";
+
+  if (!resultSoundStarted) {
+    resultSound.loop();
+    resultSoundStarted = true;
   }
+}
 }
 
 
@@ -289,15 +341,21 @@ function mousePressed() {
 
   // --- TITLE → INSTRUCTION ---
   if (appState === "r2_title") {
+
+    // ⭐ 任意第一次点击：解锁音频并启动 BGM（不出 click 声）
+    startBGM();
+
     if (
       mouseX > bottomBtnX && mouseX < bottomBtnX + bottomBtnW &&
       mouseY > bottomBtnY && mouseY < bottomBtnY + bottomBtnH
     ) {
+      // 🔊 ADD：只有点到 invisible button 才有 click 声
+      playClick();
+
       appState = "r2_instruction";
       return;
     }
   }
-
 
   // --- INSTRUCTION → ACTION ---
   else if (appState === "r2_instruction") {
@@ -305,6 +363,9 @@ function mousePressed() {
       mouseX > bottomBtnX && mouseX < bottomBtnX + bottomBtnW &&
       mouseY > bottomBtnY && mouseY < bottomBtnY + bottomBtnH
     ) {
+      // 🔊 ADD
+      playClick();
+
       detectCount = 0;
       bellTriggered = false;
       appState = "r2_action";
@@ -312,22 +373,30 @@ function mousePressed() {
     }
   }
 
+  // --- RESULT: left button → back to starter title page ---
+  else if (appState === "r2_result") {
 
-// --- RESULT: left button → back to starter title page ---
-if (
-  mouseX > resultHomeBtnX && mouseX < resultHomeBtnX + resultHomeBtnW &&
-  mouseY > resultHomeBtnY && mouseY < resultHomeBtnY + resultHomeBtnH
-) {
-  window.location.href = "/nine_lights_final/index.html";
-  return;
-}
+    if (
+      mouseX > resultHomeBtnX && mouseX < resultHomeBtnX + resultHomeBtnW &&
+      mouseY > resultHomeBtnY && mouseY < resultHomeBtnY + resultHomeBtnH
+    ) {
+      // 🔊 ADD
+      playClick();
 
-// --- RESULT: right button → go to Ritual 03 ---
-if (
-  mouseX > resultNextBtnX && mouseX < resultNextBtnX + resultNextBtnW &&
-  mouseY > resultNextBtnY && mouseY < resultNextBtnY + resultNextBtnH
-) {
-  window.location.href = "/nine_lights_final/ritual_03/index.html";
-  return;
-}
+      window.location.href = "/nine_lights_final/index.html";
+      return;
+    }
+
+    // --- RESULT: right button → go to Ritual 03 ---
+    if (
+      mouseX > resultNextBtnX && mouseX < resultNextBtnX + resultNextBtnW &&
+      mouseY > resultNextBtnY && mouseY < resultNextBtnY + resultNextBtnH
+    ) {
+      // 🔊 ADD
+      playClick();
+
+      window.location.href = "/nine_lights_final/ritual_03/index.html";
+      return;
+    }
+  }
 }
