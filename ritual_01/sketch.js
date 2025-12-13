@@ -18,6 +18,10 @@ let resultSoundStarted = false;
 let appState = "r1_title"; 
 // "r1_title", "r1_instruction", "r1_action", "r1_transition", "r1_result"
 
+// ===== Title Sound Prompt =====
+let soundDownImg;
+let soundDownVisible = true;   // 是否显示提示
+
 // --- Images & Videos ---
 // Title
 let r1TitleBg;
@@ -59,6 +63,7 @@ let transIconAngle = 0;
 
 // ===== Preload Assets & Model =====
 function preload() {
+  soundDownImg = loadImage("/nine_lights_final/ritual_01/ritual01_images/sound_down.png");
   bgmR1 = loadSound("/nine_lights_final/ritual_01/audio_01/flower_offering.mp3");
 clickSound = loadSound("/nine_lights_final/ritual_01/audio_01/clicking_sound.mp3");
 transitionSound = loadSound("/nine_lights_final/ritual_01/audio_01/transitional_sound.mp3");
@@ -188,6 +193,12 @@ function drawR1Title() {
     height / 2 - r1TitleVid.height / 2
   );
 
+    // 🔊 sound_down 提示（未启动 BGM 时才显示）
+  if (!bgmStarted && soundDownVisible) {
+    if (frameCount % 60 < 30) {   // 正常 blinking（无渐变）
+      image(soundDownImg, 0, 0, width, height);
+    }
+  }
   // Debug bottom button (development only)
   // fill(255, 0, 0, 80);
   // rect(bottomBtnX, bottomBtnY, bottomBtnW, bottomBtnH);
@@ -437,15 +448,18 @@ function mousePressed() {
   // --- Title → Instruction (bottom center) ---
   if (appState === "r1_title") {
 
-  // ⭐ 1️⃣ 任意点击：只负责解锁并启动 BGM（不出声）
-  startBGM();
+  // ⭐ 任意点击 → 启动 BGM + 隐藏 sound_down
+  if (!bgmStarted) {
+    startBGM();
+    soundDownVisible = false;   // 👈 关键
+  }
 
-  // ⭐ 2️⃣ 只有点到 invisible button 才有 click sound + 跳页
+  // ⭐ 只有点到按钮才有 click sound + 跳页
   if (
     mouseX > bottomBtnX && mouseX < bottomBtnX + bottomBtnW &&
     mouseY > bottomBtnY && mouseY < bottomBtnY + bottomBtnH
   ) {
-    playClick();                 // 🔊 只有这里有 clicking sound
+    playClick();
     appState = "r1_instruction";
     return;
   }
@@ -508,4 +522,6 @@ function mousePressed() {
       return;
     }
   }
+
+// ===== Hand Utility Functions =====
 }
