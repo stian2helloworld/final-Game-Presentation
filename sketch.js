@@ -71,9 +71,17 @@ function drawTitlePage() {
     height / 2 - logoVid.height / 2
   );
 
-  // ⭐ Full-size button overlay (1080×900 PNG)
-  // This will appear on top of the background & logo
-  image(titleBtnImg, 0, 0);
+  // ⭐ Blinking button (soft pulse)
+  let alpha = map(
+    sin(frameCount * 0.08),  // 控制闪烁速度
+    -1, 1,
+    120, 255                 // 透明度范围（不完全消失）
+  );
+
+  push();
+  tint(255, alpha);          // 应用透明度
+  image(titleBtnImg, 0, 0);  // 1080×900，不缩放
+  pop();
 }
 
 function drawInstructionPage() {
