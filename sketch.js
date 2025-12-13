@@ -36,31 +36,47 @@ let topBtnX, topBtnY, topBtnW, topBtnH;
 let bottomBtnY = 700;
 
 // ======================================
+// Welcome Cover (Intro Phase)
+// ======================================
+let welcomeCoverImg;
+let welcomeCoverTextImg;
+let soundDownImg;
+
+let coverStartTime = 0;
+let coverDuration = 5000; // 5 seconds
+let soundDownClicked = false;
+
+// ======================================
 // Preload (ONLY asset loading)
 // ======================================
 function preload() {
 
   // ----- Audio -----
-  welcomeSound = loadSound("/nine_lights_final/audio/welcome_page_.mp3");
-  clickSound = loadSound("/nine_lights_final/audio/clicking_sound.mp3");
+  welcomeSound = loadSound("audio/welcome_page_.mp3");
+  clickSound = loadSound("audio/clicking_sound.mp3");
+
+  // ----- Welcome cover -----
+welcomeCoverImg = loadImage("title_page/welcome_cover.png");
+welcomeCoverTextImg = loadImage("title_page/welcome_cover_text.png");
+soundDownImg = loadImage("title_page/sound_down.png");
 
   // ----- Title page -----
-  bgTitleVid = createVideo("/nine_lights_final/title_page/welcome_page.webm");
+  bgTitleVid = createVideo("title_page/welcome_page.webm");
   bgTitleVid.hide();
   bgTitleVid.volume(0);
   bgTitleVid.attribute("muted", "");
 
-  logoVid = createVideo("/nine_lights_final/title_page/title_page.webm");
+  logoVid = createVideo("title_page/title_page.webm");
   logoVid.hide();
   logoVid.volume(0);
   logoVid.attribute("muted", "");
 
-  titleBtnImg = loadImage("/nine_lights_final/title_page/button_title_page.png");
+  titleBtnImg = loadImage("title_page/button_title_page.png");
 
   // ----- Instruction page -----
-  instructionBg = loadImage("/nine_lights_final/general_instruction/instruction_page.jpg");
+  instructionBg = loadImage("general_instruction/instruction_page.jpg");
 
-  instructionVid = createVideo("/nine_lights_final/general_instruction/general_instruction.webm");
+  instructionVid = createVideo("general_instruction/general_instruction.webm");
   instructionVid.hide();
   instructionVid.volume(0);
   instructionVid.attribute("muted", "");
@@ -76,15 +92,16 @@ function setup() {
   logoVid.loop();
   instructionVid.loop();
 
-  // Set volumes
   welcomeSound.setVolume(0.35);
   clickSound.setVolume(0.6);
 
-  // Instruction page back button
   topBtnW = 150;
   topBtnH = 150;
   topBtnX = 20;
   topBtnY = 20;
+
+  // ⭐ start cover timer
+  coverStartTime = millis();
 }
 
 // ======================================
@@ -132,22 +149,49 @@ function drawTitlePage() {
     height / 2 - logoVid.height / 2
   );
 
-  // Blinking button (soft pulse)
-  let alpha = map(
-    sin(frameCount * 0.08),
-    -1, 1,
-    120, 255
-  );
+  let elapsed = millis() - coverStartTime;
 
-  push();
-  tint(255, alpha);
-  image(titleBtnImg, 0, 0);
-  pop();
+  // ======================================
+  // Phase 1: First 3 seconds — cover + blinking text
+  // ======================================
+  if (elapsed < coverDuration) {
 
-  // ---- DEBUG (optional) ----
-  // noFill();
-  // stroke(255, 0, 0);
-  // rect(titleBtnX, titleBtnY, titleBtnW, titleBtnH);
+    // Cover image
+    image(welcomeCoverImg, 0, 0, width, height);
+
+    // Blinking cover text
+    let alpha = map(
+      sin(frameCount * 0.08),
+      -1, 1,
+      120, 255
+    );
+
+    push();
+    tint(255, alpha);
+    image(welcomeCoverTextImg, 0, 0, width, height);
+    pop();
+
+    return; // ⛔ 不往下画
+  }
+
+  // ======================================
+// Phase 2: After 3 seconds
+// ======================================
+
+// ✅ A) sound_down 只有没点击过才显示
+// ✅ A) sound_down：正常 blinking（无渐变）
+if (!soundDownClicked) {
+  if (frameCount % 60 < 30) {   // 显示 30 帧，消失 30 帧
+    image(soundDownImg, 0, 0, width, height);
+  }
+}
+
+// ✅ B) title button 永远显示（不受 soundDownClicked 影响）
+let alphaBtn = map(sin(frameCount * 0.08), -1, 1, 120, 255);
+push();
+tint(255, alphaBtn);
+image(titleBtnImg, 0, 0, width, height);
+pop();
 }
 
 // ======================================
@@ -172,6 +216,14 @@ function mousePressed() {
   // Start ambient sound on first interaction
   startWelcomeAudio();
 
+  // ⭐【关键】如果在 title 页，并且已经过了 3 秒 cover
+  if (appState === "title") {
+    let elapsed = millis() - coverStartTime;
+    if (elapsed >= coverDuration) {
+      soundDownClicked = true; // ← 这一行是你缺的
+    }
+  }
+  
   // ----- TITLE PAGE -----
   if (appState === "title") {
 
