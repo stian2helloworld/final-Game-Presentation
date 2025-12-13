@@ -147,7 +147,7 @@ function drawTitle() {
   }
 
   // ===== Title button – gradient blinking =====
-let blinkSpeed = 0.05;              // 控制呼吸速度
+let blinkSpeed = 0.05;              
 let alphaVal = map(
   sin(frameCount * blinkSpeed),
   -1, 1,
