@@ -11,6 +11,8 @@ let waterTriggered = false;
 let waterDetectedTime = 0;
 const waterThreshold = 1023;
 
+const btnHeight = 200;
+
 // ---------- App States ----------
 let appState = "r3_title";
 
@@ -32,9 +34,6 @@ let titleVid, instrVid, actionVid;
 let transBgVid, transFrameVid;
 let patternVid, deerVid;
 let pourWaterImg, waterDetectedImg;
-
-// Invisible bottom button height
-const btnHeight = 200;
 
 // Transition timer
 let transStartTime = 0;
