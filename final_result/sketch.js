@@ -70,7 +70,7 @@ function mousePressed() {
     resultBGM.setVolume(0.35);
     audioUnlocked = true;
     soundUpVisible = false;   // ✅ sound_up 消失
-    return;                  // ⛔ 非常关键：不允许跳页
+    return;                  
   }
 
   // Left bottom → Title page
